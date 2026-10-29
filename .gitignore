@@ -1,0 +1,68 @@
+# Secrets / credentials
+secure/
+**/secrets.yaml
+**/.jwt_secret
+**/passwords
+secure/*.env
+
+# Runtime data
+log/
+tmp/
+
+# Frigate runtime data
+frigate/media/
+frigate/model_cache/
+frigate/*.db
+frigate/*.db-*
+frigate/.exports
+frigate/.timeline
+frigate/.vacuum
+frigate/.search_stats.json
+frigate/.jwt_secret
+
+# Home Assistant runtime/state
+homeassistant/.storage/
+homeassistant/*.db
+homeassistant/*.db-*
+homeassistant/*.log*
+homeassistant/.ha_run.lock
+homeassistant/.cloud/
+
+# Zigbee2MQTT runtime/state
+zigbee2mqtt/database.db*
+zigbee2mqtt/log/
+zigbee2mqtt/state.json
+
+# Mosquitto runtime
+mosquitto/data/
+mosquitto/log/
+
+# Backups / temporary copies
+*.bak
+*.bak.*
+*.bak-*
+*.backup
+*.save
+*_backup*
+backup/
+backups/
+frigate/backup_config.yaml
+# Python
+__pycache__/
+*.py[cod]
+
+# Editor / temporary files
+*~
+*.swp
+*.swo
+
+# Migration / historical logs
+zigbee2mqtt/migration-*.log
+
+# Live deployment configuration (keep private)
+frigate/config.yml
+frigate/rtsp.map
+zigbee2mqtt/
+mosquitto/conf.d/30-bridge-to-pi4b.conf
+test-camera.sh
+secure/

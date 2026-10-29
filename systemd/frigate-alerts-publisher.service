@@ -1,0 +1,11 @@
+[Unit]
+Description=Publish Frigate Alerts list to MQTT (edge/frigate/alerts)
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+Environment=LIMIT=10
+Environment=MQTT_HOST=127.0.0.1
+EnvironmentFile=${HOMEAUTO_DIR}/secure/mqtt_publisher.env
+ExecStart=${HOMEAUTO_DIR}/bin/publish_frigate_alerts.sh

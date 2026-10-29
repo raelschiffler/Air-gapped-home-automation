@@ -1,0 +1,12 @@
+[Unit]
+Description=Export Frigate events to filesystem bus
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 ${HOMEAUTO_DIR}/bin/frigate_to_bus.py
+Restart=always
+RestartSec=2
+WorkingDirectory=${HOMEAUTO_DIR}/bin
+
+[Install]
+WantedBy=multi-user.target

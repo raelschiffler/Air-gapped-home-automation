@@ -1,0 +1,16 @@
+[Unit]
+Description=Mirror switch_suite state to Bulb_1_suite and Bulb_2_suite via MQTT
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/zigbee-link-suite
+ExecStart=/usr/local/bin/zigbee-link-suite.sh
+Restart=always
+RestartSec=2s
+# Give it network and Docker time at boot
+StartLimitBurst=0
+
+[Install]
+WantedBy=multi-user.target

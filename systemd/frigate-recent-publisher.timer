@@ -1,0 +1,13 @@
+# /etc/systemd/system/frigate-recent-publisher.timer
+[Unit]
+Description=Run frigate-recent-publisher every 15 seconds
+
+[Timer]
+OnBootSec=5s
+OnUnitActiveSec=15s
+Unit=frigate-recent-publisher.service
+AccuracySec=1s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

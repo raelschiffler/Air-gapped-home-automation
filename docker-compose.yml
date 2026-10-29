@@ -1,0 +1,83 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    restart: unless-stopped
+    networks: [ha_net]
+    ports:
+      - "1883:1883"      # MQTT (LAN only)
+      - "9001:9001"      # (optional) WebSockets, can remove
+    volumes:
+      - ${HOMEAUTO_DIR}/mosquitto:/mosquitto/config
+      - ${HOMEAUTO_DIR}/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ${HOMEAUTO_DIR}/mosquitto/data:/mosquitto/data
+      - ${HOMEAUTO_DIR}/mosquitto/log:/mosquitto/log
+
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt:latest
+    container_name: zigbee2mqtt
+    restart: unless-stopped
+    depends_on: [mosquitto]
+    networks: [ha_net]
+    environment:
+      - TZ=UTC
+    volumes:
+      - ${HOMEAUTO_DIR}/zigbee2mqtt:/app/data
+    devices:
+      - "/dev/serial/by-id/usb-Itead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_V2_de49c56184c2ef11a67ec0138148b910-if00-port0:/dev/ttyUSB0"  # map to stable name
+    ports:
+      - "8080:8080"  # Z2M frontend (optional; LAN only)
+
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    depends_on: [mosquitto]
+    networks: [ha_net]
+    ports:
+      - "8123:8123"   # HA UI (LAN only)
+    volumes:
+      - ${HOMEAUTO_DIR}/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - TZ=UTC
+
+
+  frigate:
+    env_file:
+      - ./secure/frigate.env
+    image: ghcr.io/blakeblackshear/frigate:stable
+    container_name: frigate
+    restart: unless-stopped
+    privileged: true
+    shm_size: "512m"
+    depends_on: [mosquitto]
+    ports:
+      - "8971:8971"      # Frigate REST/LL API
+      - "5000:5000"      # Frigate web UI
+    devices:
+      - /dev/bus/usb:/dev/bus/usb       # Coral USB
+      - /dev/dri:/dev/dri               # (optional) if using GPU accel
+    volumes:
+      - ./frigate:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /dev/bus/usb:/dev/bus/usb
+      - ${HOMEAUTO_DIR}/frigate/media:/media
+
+#  motioneye:
+#    image: ghcr.io/motioneye-project/motioneye:master-aarch64
+#    container_name: motioneye
+#    restart: unless-stopped
+#    ports:
+#      - "8765:8765"
+#    environment:
+#      - TZ=UTC
+#    volumes:
+#      - /etc/localtime:/etc/localtime:ro
+#      - ./motioneye/config:/etc/motioneye
+#      - ./motioneye/media:/var/lib/motioneye
+
+
+networks:
+  ha_net:
+    driver: bridge

@@ -1,0 +1,19 @@
+[Unit]
+Description=Forward cloud/cmd/# to local actions (Z2M/PTZ/Capture) on Pi5
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cloud-cmd-forwarder.sh
+Restart=always
+RestartSec=1
+SyslogIdentifier=cloud-cmd-forwarder
+
+# harden a bit
+NoNewPrivileges=yes
+ProtectSystem=full
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

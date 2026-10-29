@@ -1,0 +1,391 @@
+- id: '1761163466480'
+  alias: Interruptor da escada 1 espelha pra 2
+  description: ''
+  triggers:
+  - entity_id: switch.switch_downstairs
+    to:
+    - 'on'
+    - 'off'
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{{ states(''switch.switch_upstairs'') != trigger.to_state.state
+      }}'
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''on'' }}'
+      sequence:
+      - target:
+          entity_id: switch.switch_upstairs
+        action: switch.turn_on
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''off'' }}'
+      sequence:
+      - target:
+          entity_id: switch.switch_upstairs
+        action: switch.turn_off
+  mode: single
+- id: '1761163497200'
+  alias: Interruptor da escada 2 espelha pra 1
+  description: ''
+  triggers:
+  - entity_id: switch.switch_upstairs
+    to:
+    - 'on'
+    - 'off'
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{{ states(''switch.switch_downstairs'') != trigger.to_state.state
+      }}'
+  actions:
+  - choose:
+    - conditions: '{{ trigger.to_state.state == ''on'' }}'
+      sequence:
+      - target:
+          entity_id: switch.switch_downstairs
+        action: switch.turn_on
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''off'' }}'
+      sequence:
+      - target:
+          entity_id: switch.switch_downstairs
+        action: switch.turn_off
+  mode: single
+- id: '1761448518395'
+  alias: Frigate PTZ autotrack (entrance)
+  description: ''
+  triggers:
+  - topic: frigate/events
+    trigger: mqtt
+  conditions:
+  - condition: template
+    value_template: "{% set e = trigger.payload_json %} {{ e['after'] is defined\n
+      \  and e['after']['camera'] == 'entrance'\n   and e['after']['label'] in ['person','car','dog']
+      }}\n"
+  actions:
+  - variables:
+      e: '{{ trigger.payload_json[''after''] }}'
+      x_min: '{{ e[''box''][0] | float }}'
+      y_min: '{{ e[''box''][1] | float }}'
+      x_max: '{{ e[''box''][2] | float }}'
+      y_max: '{{ e[''box''][3] | float }}'
+      fw: 640
+      fh: 480
+      cx: '{{ ((x_min + x_max) / 2.0) / fw }}'
+      cy: '{{ ((y_min + y_max) / 2.0) / fh }}'
+      dx: '{{ cx | float - 0.5 }}'
+      dy: '{{ 0.5 - cy | float }}'
+      dead: 0.08
+      spd_x: '{{ ( (dx | abs) * 2.2 ) | min(0.8) | float }}'
+      spd_y: '{{ ( (dy | abs) * 2.2 ) | min(0.8) | float }}'
+      dur: 0.35
+  - if:
+    - condition: template
+      value_template: '{{ dx | abs > dead }}'
+    then:
+    - action: onvif.ptz
+      target:
+        entity_id: camera.amc0571f_4a2f13_mediaprofile_channel1_substream1
+      data:
+        move_mode: ContinuousMove
+        pan: '{{ ''RIGHT'' if dx|float > 0 else ''LEFT'' }}'
+        speed: '{{ spd_x }}'
+        continuous_duration: '{{ dur }}'
+        profile: 0
+  - if:
+    - condition: template
+      value_template: '{{ dy | abs > dead }}'
+    then:
+    - action: onvif.ptz
+      target:
+        entity_id: camera.amc0571f_4a2f13_mediaprofile_channel1_substream1
+      data:
+        move_mode: ContinuousMove
+        tilt: '{{ ''UP'' if dy|float > 0 else ''DOWN'' }}'
+        speed: '{{ spd_y }}'
+        continuous_duration: '{{ dur }}'
+        profile: 0
+  mode: restart
+- id: '1761448677532'
+  alias: Frigate PTZ return to preset (front)
+  description: ''
+  triggers:
+  - topic: frigate/events
+    trigger: mqtt
+  conditions:
+  - condition: template
+    value_template: "{% set e = trigger.payload_json %} {{ e['type'] == 'end'\n   and
+      e['after'] is defined\n   and e['after']['camera'] == 'entrance' }}\n"
+  actions:
+  - delay: 00:00:12
+  - action: onvif.goto_preset
+    target:
+      entity_id: camera.amc0571f_4a2f13_mediaprofile_channel1_substream1
+    data:
+      preset: 1
+  mode: single
+- id: '1762295785837'
+  alias: Acende luzes suite
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 95a3e427226e08c402277253378767e6
+    entity_id: 952fc0f1bdfc50132c8a01fc1126cbab
+    domain: switch
+    trigger: device
+    id: 'On'
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data: {}
+    target:
+      device_id:
+      - 9608084b423ef29b600b1ba4dd695fc5
+      - 7c6f85dbe3d18590f2dfb8d9fbb64ccf
+  mode: single
+- id: '1762295840150'
+  alias: Apaga luzes suite
+  description: ''
+  triggers:
+  - type: turned_off
+    device_id: 95a3e427226e08c402277253378767e6
+    entity_id: 952fc0f1bdfc50132c8a01fc1126cbab
+    domain: switch
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      device_id:
+      - 9608084b423ef29b600b1ba4dd695fc5
+      - 7c6f85dbe3d18590f2dfb8d9fbb64ccf
+  mode: single
+- id: '1762862815735'
+  alias: Acende_Luzes_Sacada
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 95a3e427226e08c402277253378767e6
+    entity_id: aace7a715fa08890d9578260ec123869
+    domain: switch
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 17a6508ffe755846d5ffb874f14db798
+    entity_id: 67580d46f9d9b9a97a57bc3a3ac3430b
+    domain: switch
+  mode: single
+- id: '1762865326856'
+  alias: Apaga_Luzes_Sacada
+  description: ''
+  triggers:
+  - type: turned_off
+    device_id: 95a3e427226e08c402277253378767e6
+    entity_id: aace7a715fa08890d9578260ec123869
+    domain: switch
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 17a6508ffe755846d5ffb874f14db798
+    entity_id: 67580d46f9d9b9a97a57bc3a3ac3430b
+    domain: switch
+  mode: single
+- id: '1762865550741'
+  alias: Switch Suite espelha pra Balcony
+  description: ''
+  triggers:
+  - entity_id: switch.switch_suite_2gang_center
+    to:
+    - 'on'
+    - 'off'
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{{ states(''switch.switch_balcony'') != trigger.to_state.state
+      }}'
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''on'' }}'
+      sequence:
+      - target:
+          entity_id: switch.switch_balcony
+        action: switch.turn_on
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''off'' }}'
+      sequence:
+      - target:
+          entity_id: switch.switch_balcony
+        action: switch.turn_off
+  mode: single
+- id: '1762865677652'
+  alias: Switch Balcony espelha pra Suite
+  description: ''
+  triggers:
+  - entity_id: switch.switch_balcony
+    to:
+    - 'on'
+    - 'off'
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{{ states(''switch.switch_suite_2gang_center'') != trigger.to_state.state
+      }}'
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''on'' }}'
+      sequence:
+      - target:
+          entity_id: switch.switch_suite_2gang_center
+        action: switch.turn_on
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''off'' }}'
+      sequence:
+      - target:
+          entity_id: switch.switch_suite_2gang_center
+        action: switch.turn_off
+  mode: single
+- id: '1764292026332'
+  alias: Desliga luz garagem ao amanhecer
+  description: ''
+  triggers:
+  - trigger: sun
+    event: sunrise
+    offset: 0
+  conditions: []
+  actions:
+  - action: switch.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+      - switch.switch_3_gang_l1
+  mode: single
+- id: '1764292171730'
+  alias: Liga luz garagem ao anoitecer
+  description: ''
+  triggers:
+  - trigger: sun
+    event: sunset
+    offset: 0
+  conditions: []
+  actions:
+  - action: switch.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: switch.switch_3_gang_l1
+  mode: single
+- id: '1785447349933'
+  alias: Acende_quarto_meninas
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 74048882a9aa5411facdc038c2f54c86
+    entity_id: 6040b43acff0f6595714d39f9097f9f4
+    domain: switch
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 3bb028fc83d91903768026572d100b72
+    entity_id: c6cb0eefb431c7ebf8b098049f1fd984
+    domain: light
+    flash: long
+  mode: single
+- id: '1785447383953'
+  alias: Desliga luz quarto meninas
+  description: ''
+  triggers:
+  - type: turned_off
+    device_id: 74048882a9aa5411facdc038c2f54c86
+    entity_id: 6040b43acff0f6595714d39f9097f9f4
+    domain: switch
+    trigger: device
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 3bb028fc83d91903768026572d100b72
+    entity_id: c6cb0eefb431c7ebf8b098049f1fd984
+    domain: light
+  mode: single
+- id: '1785759903161'
+  alias: Girls Room LED Panel - Toggle Color
+  description: ''
+  triggers:
+  - entity_id: light.bulb_room_girls
+    from: 'off'
+    to: 'on'
+    trigger: state
+  actions:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ states(''sun.sun'') == ''below_horizon'' }}'
+      sequence:
+      - target:
+          entity_id: light.bulb_room_girls
+        data:
+          xy_color:
+          - 0.481
+          - 0.395
+        action: light.turn_on
+    default:
+    - target:
+        entity_id: light.bulb_room_girls
+      data:
+        color_temp_kelvin: 2000
+        brightness: 255
+      action: light.turn_on
+  mode: single
+- id: '1785759959426'
+  alias: Girls room LED Panel - Sunset Color
+  triggers:
+  - event: sunset
+    trigger: sun
+  conditions:
+  - condition: state
+    entity_id: light.bulb_room_girls
+    state: 'on'
+  actions:
+  - target:
+      entity_id: light.bulb_room_girls
+    data:
+      xy_color:
+      - 0.481
+      - 0.395
+    action: light.turn_on
+  mode: single
+- id: '1785760094802'
+  alias: Girls Room LED Panel - Sunrise Color
+  description: ''
+  triggers:
+  - event: sunrise
+    trigger: sun
+  conditions:
+  - condition: state
+    entity_id: light.bulb_room_girls
+    state: 'on'
+  actions:
+  - target:
+      entity_id: light.bulb_room_girls
+    data:
+      brightness: 255
+      color_temp_kelvin: 2000
+    action: light.turn_on
+  mode: single

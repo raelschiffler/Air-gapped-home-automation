@@ -1,0 +1,13 @@
+# /etc/systemd/system/edge-capture-30s.service
+[Unit]
+Description=On-demand 30s RTSP capture via Frigate ffmpeg -> edge/media/new
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+ExecStart=/usr/local/sbin/edge-capture-30s.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

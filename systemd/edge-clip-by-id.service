@@ -1,0 +1,13 @@
+# /etc/systemd/system/edge-clip-by-id.service
+[Unit]
+Description=On-request clip materializer by event_id -> edge/media/new
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+ExecStart=/usr/local/sbin/edge-clip-by-id.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

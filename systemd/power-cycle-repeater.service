@@ -1,0 +1,15 @@
+[Unit]
+Description=Power-cycle the repeater smart plug via MQTT (OFF->delay->ON)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=DELAY_SECONDS=60
+EnvironmentFile=/etc/default/power-cycle-repeater
+# Call bash explicitly to avoid any shebang/noexec weirdness
+ExecStart=/bin/bash -lc '/usr/local/bin/power-cycle-repeater.sh'
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

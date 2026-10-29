@@ -1,0 +1,14 @@
+[Unit]
+Description=Run power-cycle every 11 hours
+
+[Timer]
+OnBootSec=5min
+# Run, then re-run 11h after the service last started
+OnUnitActiveSec=11h
+AccuracySec=1min
+# Survive reboots; if missed while down, run shortly after boot
+Persistent=true
+RandomizedDelaySec=30s
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,14 @@
+# /etc/systemd/system/edge-frigate-clipper.service
+[Unit]
+Description=Frigate end-event -> file notice (edge/media/new) [container-native]
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/edge-frigate-clipper.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

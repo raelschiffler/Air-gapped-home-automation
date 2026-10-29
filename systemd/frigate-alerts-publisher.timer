@@ -1,0 +1,11 @@
+[Unit]
+Description=Run frigate-alerts-publisher every 15 seconds
+
+[Timer]
+OnBootSec=20
+OnUnitActiveSec=15
+AccuracySec=1s
+Unit=frigate-alerts-publisher.service
+
+[Install]
+WantedBy=timers.target

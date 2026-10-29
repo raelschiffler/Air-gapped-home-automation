@@ -1,0 +1,12 @@
+[Unit]
+Description=Return PTZ to preset when Frigate is idle
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/frigate-return-home.sh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

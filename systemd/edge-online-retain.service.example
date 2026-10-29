@@ -1,0 +1,19 @@
+[Unit]
+Description=Publish retained edge-online flag to local Mosquitto at boot
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+# Retry until the container is ready, then publish retained "1"
+ExecStart=/bin/sh -c '\
+  for i in $(seq 1 20); do \
+    docker exec mosquitto mosquitto_pub -h 127.0.0.1 \
+      -u "CHANGE_ME" -P "CHANGE_ME" \
+      -r -t edge/health/online -m 1 && exit 0; \
+    sleep 3; \
+  done; \
+  echo "edge-online-retain: failed to publish after retries" >&2; exit 1'
+
+[Install]
+WantedBy=multi-user.target

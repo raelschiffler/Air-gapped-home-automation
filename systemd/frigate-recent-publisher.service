@@ -1,0 +1,13 @@
+# /etc/systemd/system/frigate-recent-publisher.service
+[Unit]
+Description=Publish Frigate Recent events (frigate/recent)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# EnvironmentFile=/etc/systemd/system/frigate-alerts.env
+ExecStart=${HOMEAUTO_DIR}/bin/publish_frigate_recent.sh
+
+[Install]
+WantedBy=multi-user.target
